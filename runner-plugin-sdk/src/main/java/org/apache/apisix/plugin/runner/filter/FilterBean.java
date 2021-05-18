@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.apisix.plugin.runner.server;
+package org.apache.apisix.plugin.runner.filter;
 
-import org.springframework.stereotype.Component;
+import org.apache.apisix.plugin.runner.HttpRequest;
+import org.apache.apisix.plugin.runner.HttpResponse;
+import org.springframework.core.Ordered;
 
-@Component
-public class NettyUnixDomainSocketServerFactory implements UnixDomainSocketServerFactory {
+public interface FilterBean extends Ordered {
     
-    @Override
-    public UnixDomainSocketServer create() {
-        return new NettyUnixDomainSocketServer();
-    }
+    void doFilter(HttpRequest request, HttpResponse response, FilterChain filterChain);
     
 }

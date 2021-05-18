@@ -14,19 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+package org.apache.apisix.plugin.runner.handler;
 
-package org.apache.apisix.plugin.runner.server;
+import org.apache.apisix.plugin.runner.A6Request;
+import org.apache.apisix.plugin.runner.A6Response;
+import org.apache.apisix.plugin.runner.HttpRequest;
+import org.apache.apisix.plugin.runner.HttpResponse;
+import org.apache.apisix.plugin.runner.filter.FilterChain;
 
-import org.springframework.boot.web.server.GracefulShutdownCallback;
-import org.springframework.boot.web.server.GracefulShutdownResult;
-
-public interface UnixDomainSocketServer {
+public class A6HttpCallHandler implements Handler {
     
-    void start();
+    private final FilterChain chain;
     
-    void stop();
+    public A6HttpCallHandler(FilterChain chain) {
+        this.chain = chain;
+    }
     
-    default void shutDownGracefully(GracefulShutdownCallback callback) {
-        callback.shutdownComplete(GracefulShutdownResult.IMMEDIATE);
+    @Override
+    public void handle(A6Request request, A6Response response) {
+        HttpRequest req = null;
+        HttpResponse rsp = null;
+        chain.doFilter(req, rsp);
     }
 }

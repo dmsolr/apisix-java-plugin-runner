@@ -15,11 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.apisix.plugin.runner.server;
+package org.apache.apisix.plugin.runner;
 
-@FunctionalInterface
-public interface UnixDomainSocketServerFactory {
+import com.google.flatbuffers.FlatBufferBuilder;
+import io.github.api7.A6.PrepareConf.Resp;
+import lombok.Getter;
+
+import java.nio.ByteBuffer;
+
+public class A6ConfigResponse implements A6Response {
     
-    UnixDomainSocketServer create();
+    @Getter
+    private final int confToken;
     
+    public A6ConfigResponse(int confToken) {
+        this.confToken = confToken;
+    }
+    
+    public final ByteBuffer encode() {
+        FlatBufferBuilder builder = new FlatBufferBuilder();
+        Resp.startResp(builder);
+        Resp.addConfToken(builder, confToken);
+        builder.finish(Resp.endResp(builder));
+        return builder.dataBuffer();
+    }
 }

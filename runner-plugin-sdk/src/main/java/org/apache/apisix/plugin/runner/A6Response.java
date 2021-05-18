@@ -15,26 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.apisix.plugin.runner.handler;
+package org.apache.apisix.plugin.runner;
 
-import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import reactor.netty.NettyInbound;
-import reactor.netty.NettyOutbound;
+import java.nio.ByteBuffer;
 
-@Component
-public class DefaultServerHandler implements ServerHandler {
+public interface A6Response {
     
-    private Logger logger = LoggerFactory.getLogger(DefaultServerHandler.class);
+    ByteBuffer encode();
     
-    @Override
-    public Publisher<Void> handler(NettyInbound in, NettyOutbound out) {
-        return out.sendString(in.receive().asString().map(data -> {
-            logger.info("receive context: {}", data);
-            return "response: " + data;
-        }));
+    enum Action {
+        
+        STOP,
+        REWRITE,
+        ERR
+        
     }
-    
 }

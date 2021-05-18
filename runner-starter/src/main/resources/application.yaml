@@ -1,3 +1,7 @@
 logging:
   level:
-    root: INFO
+    root: debug
+
+cache.config:
+  expired: 200
+  capacity: 12000

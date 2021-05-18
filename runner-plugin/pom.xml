@@ -31,4 +31,11 @@
 
     <name>APISIX Java Plugin Runner Core</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.apisix</groupId>
+            <artifactId>apisix-runner-plugin-sdk</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

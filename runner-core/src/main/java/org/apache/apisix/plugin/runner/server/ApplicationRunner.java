@@ -17,14 +17,12 @@
 
 package org.apache.apisix.plugin.runner.server;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.logging.LoggingHandler;
-import org.apache.apisix.plugin.runner.handler.ServerHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.apache.apisix.plugin.runner.handler.IOHandler;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
@@ -32,36 +30,37 @@ import reactor.netty.tcp.TcpServer;
 import java.util.Objects;
 
 @Component
-public class NettyUnixDomainSocketServer implements UnixDomainSocketServer {
+@RequiredArgsConstructor
+public class ApplicationRunner implements CommandLineRunner {
     
-    private static final Logger logger = LoggerFactory.getLogger(NettyUnixDomainSocketServer.class);
-    
-    private DisposableServer server;
+    private final TcpServer tcpServer;
     
     @Value("${socket.file:/tmp/runner.socks}")
     private String socketFile;
     
-    @Autowired(required = false)
-    private ChannelHandler handler;
+    private final IOHandler handler;
     
-    @Autowired
-    private ServerHandler serverHandler;
+    private DisposableServer server;
     
     @Override
-    public void start() {
-        TcpServer server = TcpServer.create()
-                .bindAddress(() -> new DomainSocketAddress(socketFile))
-                .doOnChannelInit((observer, channel, addr) -> {
-                    if (Objects.nonNull(handler)) {
-                        channel.pipeline().addFirst(handler);
-                        channel.pipeline().addFirst("logger", new LoggingHandler());
-                    }
-                });
+    public void run(String... args) throws Exception {
+        TcpServer tcpServer = this.tcpServer;
         
-        if (Objects.nonNull(serverHandler)) {
-            server = server.handle((in, out) -> serverHandler.handler(in, out));
+        if (Objects.isNull(tcpServer)) {
+            tcpServer = TcpServer.create();
         }
-        this.server = server.bindNow();
+        tcpServer = tcpServer.bindAddress(() -> new DomainSocketAddress(socketFile));
+        tcpServer = tcpServer.doOnChannelInit((observer, channel, addr) -> {
+//            if (Objects.nonNull(channelHandlers)) {
+//                channel.pipeline().addLast(channelHandlers);
+//            }
+            channel.pipeline().addFirst("logger", new LoggingHandler());
+        });
+
+        if (Objects.nonNull(handler)) {
+            tcpServer = tcpServer.handle(handler::handle);
+        }
+        this.server = tcpServer.bindNow();
         
         Thread awaitThread = new Thread(() -> {
             this.server.onDispose().block();
@@ -70,10 +69,4 @@ public class NettyUnixDomainSocketServer implements UnixDomainSocketServer {
         awaitThread.setName("uds-server");
         awaitThread.start();
     }
-    
-    @Override
-    public void stop() {
-        server.disposeNow();
-    }
-    
 }

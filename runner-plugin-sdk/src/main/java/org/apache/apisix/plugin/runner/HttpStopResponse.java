@@ -15,11 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.apisix.plugin.runner.configuration;
+package org.apache.apisix.plugin.runner;
 
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class ServerConfiguration {
-
+/**
+ * table Stop {
+ *     status:uint16;
+ *     headers:[TextEntry];
+ *     body:[ubyte];
+ * }
+ */
+@Deprecated
+public class HttpStopResponse extends HttpResponse {
+    
+    private int status;
+    
+    private byte[] body;
+    
+    public HttpStopResponse(int requestId) {
+        super(requestId);
+    }
+    
+    public void setBody(String body) {
+        this.body = body.getBytes();
+    }
+    
 }
